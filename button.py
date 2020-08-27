@@ -7,8 +7,9 @@ from multiprocessing import Process
 record = []
 answers = []
 prev = time.time()
-ht = 6
-w = 16
+font='Monospace 20'
+ht = 1
+w = 6
 i = 1
 
 def show(answers):
@@ -19,13 +20,15 @@ def show(answers):
     for item in answers:
         print("%s\t%s\t%s" % item)
 
-sg.theme('DarkGreen3')	# Add a touch of color
+#  sg.theme('DarkGreen3')	# Add a touch of color
+sg.theme('DarkGreen2')	# Add a touch of color
 # All the stuff inside your window.
-the_only_button = sg.Button("QN: {}".format(i), size=(2*w+5, 2*ht+4))
-field = sg.Text("0:00", size=(w, ht))
+the_only_button = sg.Button("Qn: {}".format(i), size=(2*w+5, 2*ht+4))
+field = sg.Text(f" Qn: {i}", size=(w, 2), font=font, justification='center')
 options = ["A", "B", "C", "D", "E", "F", "G"]
-option_buttons = [sg.Button(label, size=(w, ht)) for label in options]
+option_buttons = [sg.Button(label, size=(w, ht), font=font) for label in options]
 layout = [ 
+        [field],
         [option_buttons[0]],
         [option_buttons[1]],
         [option_buttons[2]],
@@ -60,6 +63,7 @@ while True:
         duration = sec2time(int(now - prev))
         answers.append((i, event, duration))
         i+=1
+        field.Update(f" Qn: {i}")
         prev = now
 window.close()
 show(answers)
