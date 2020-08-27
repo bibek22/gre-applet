@@ -7,8 +7,8 @@ from multiprocessing import Process
 record = []
 answers = []
 prev = time.time()
-ht = 7
-w = 6
+ht = 6
+w = 16
 i = 1
 
 def show(answers):
@@ -25,11 +25,15 @@ the_only_button = sg.Button("QN: {}".format(i), size=(2*w+5, 2*ht+4))
 field = sg.Text("0:00", size=(w, ht))
 options = ["A", "B", "C", "D", "E", "F", "G"]
 option_buttons = [sg.Button(label, size=(w, ht)) for label in options]
-layout = [ option_buttons[:2],
-        option_buttons[2:4],
-        option_buttons[4:6],
-        [option_buttons[6]],# field],
-        [ the_only_button] ]
+layout = [ 
+        [option_buttons[0]],
+        [option_buttons[1]],
+        [option_buttons[2]],
+        [option_buttons[3]],
+        [option_buttons[4]],
+        [option_buttons[5]],
+        [option_buttons[6]]
+        ]
 
 def sec2time(secs):
     time = str(secs // 60) + ":" + "{:02d}".format(secs % 60)
@@ -46,22 +50,16 @@ def timer(field):
 
 # Create the Window
 window = sg.Window('record', layout, finalize=True)
-clock = Process(target=timer, args=(field,))
-#  clock.start()
-#  window.TKroot.title('')
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
     event, values = window.read()
     if event == sg.WIN_CLOSED or event == 'Cancel':# if user closes window or clicks cancel
-        #  clock.terminate()
-        #  clock.join()
         break
     if event in options:
         now = time.time() 
         duration = sec2time(int(now - prev))
         answers.append((i, event, duration))
         i+=1
-        the_only_button.Update("QN: {}".format(i))
         prev = now
 window.close()
 show(answers)
