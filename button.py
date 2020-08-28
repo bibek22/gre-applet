@@ -4,14 +4,44 @@ import subprocess
 import time
 from multiprocessing import Process
 
+sg.theme('DarkGreen2')
 record = []
 answers = []
 prev = time.time()
 font = 'Monospace 20'
+font_small = 'Monospace 10'
 ht = 1
 w = 6
 i = 1
 all_text = ""
+
+
+def sec2time(secs):
+    time = str(secs // 60) + ":" + "{:02d}".format(secs % 60)
+    return (time)
+
+
+def timer():
+    # Timer
+    field_timer = sg.Text(f"0:00",
+                          size=(w, 2),
+                          font=font,
+                          justification='center')
+    layout_timer = [[field_timer]]
+    window_timer = sg.Window('timer', layout_timer, finalize=True)
+
+    duration = 0
+    while True:
+        print(duration)
+        time.sleep(1)
+        duration += 1
+        label = sec2time(duration)
+        print(label)
+        field_timer.Update(label)
+
+
+#  timerp = Process(target=timer)
+#  timerp.start()
 
 
 def printm(text, **kwargs):
@@ -38,7 +68,7 @@ class Section(object):
     """collection of Responses"""
     def __init__(self):
         self.questions = []
-        self.critical_time = 142
+        self.critical_time = 102
         self.keys = None
 
     def add_question(self, qn):
@@ -49,7 +79,7 @@ class Section(object):
     def read_answers(self):
         # get rid of the last question right away
         del self.questions[-1]
-        printm(f"total responses: {len(self.questions)}")
+        print(f"total responses: {len(self.questions)}")
         self.keys = input("Answers: ").strip().replace(" ", "").upper()
         total_keys = len(self.keys)
         for i, q in enumerate(self.questions):
@@ -67,7 +97,7 @@ class Section(object):
             else:
                 q.result = 0
 
-    def _printm_banner(self, headers):
+    def _print_banner(self, headers):
         banner = "\t".join(headers)
         length = len(banner) + 1
         printm("\n" + "=" * length)
@@ -75,26 +105,26 @@ class Section(object):
         printm("-" * length)
 
     def show_response(self):
-        self._printm_banner(["Qn.", "Ans.", "Time"])
+        self._print_banner(["Qn.", "Ans.", "Time"])
         for q in self.questions:
             printm("%s\t%s\t%s" % (q.qn, q.answer, q.get_duration()))
 
     def show_result(self):
-        self._printm_banner(["Qn.", "Answer", "Time"])
+        self._print_banner(["Qn.", "Answer", "Time"])
         for q in self.questions:
             if q.result:
-                printm("%s\t%s\t\t%s" % (q.qn, q.answer, q.get_duration()))
+                printm("%s\t%s \t\t%s" % (q.qn, q.answer, q.get_duration()))
             else:
                 printm("%s\t%s(%s)\t%s" %
                        (q.qn, q.answer, q.key, q.get_duration()))
 
     def report_time(self):
-        ct = input(f"\nCritical time ({section.critical_time}): ").strip()
+        ct = input(f"\nTime threshold ({section.critical_time}s): ").strip()
         if ct:
             try:
                 self.critical_time = int(ct)
             except:
-                printm("Default understood.")
+                print("Default understood.")
         else:
             printm("Default understood.")
         critical = []
@@ -104,7 +134,8 @@ class Section(object):
         if not critical:
             printm("Congratutions, All on time!")
         else:
-            self._printm_banner(["Qn.", "Result", "Time"])
+            printm("Following questions took too long:")
+            self._print_banner(["Qn.", "Result", "Time"])
             for i in critical:
                 q = self.questions[i]
                 #    לּ ﬽✘
@@ -118,52 +149,62 @@ class Section(object):
         self.show_result()
         self.report_time()
 
+    def get_qn(self, num):
+        for q in self.questions:
+            if q.qn == num:
+                return(q)
+        return(None)
 
-sg.theme('DarkGreen2')  # Add a touch of color
-# All the stuff inside your window.
+
+    def qexists(self, num):
+        for q in self.questions:
+            if q.qn == num:
+                return(True)
+        return(False)
+
+
 field = sg.Text(f" Qn: {i}", size=(w, 2), font=font, justification='center')
 options = ["A", "B", "C", "D", "E", "F", "G"]
+nav_options = ["Prev", "Next"]
 option_buttons = [
     sg.Button(label, size=(w, ht), font=font) for label in options
 ]
-layout = [[field], [option_buttons[0]], [option_buttons[1]],
-          [option_buttons[2]], [option_buttons[3]], [option_buttons[4]],
-          [option_buttons[5]], [option_buttons[6]]]
-
-
-def sec2time(secs):
-    time = str(secs // 60) + ":" + "{:02d}".format(secs % 60)
-    return (time)
-
-
-def timer(field):
-    duration = 0
-    while True:
-        printm(duration)
-        time.sleep(1)
-        duration += 1
-        label = sec2time(duration)
-        field.Update()
-
+layout = [
+    [field], [option_buttons[0]], [option_buttons[1]], [option_buttons[2]],
+    [option_buttons[3]], [option_buttons[4]], [option_buttons[5]],
+    [option_buttons[6]],
+    [sg.Button(label, size=(w//2+1, ht), font=font_small) for label in nav_options]
+]
 
 # create a section object
 section = Section()
 # Create the Window
 window = sg.Window('record', layout, finalize=True)
+
 # Event Loop to process "events" and get the "values" of the inputs
 
+question = section.add_question(i)
 while True:
-    question = section.add_question(i)
+    field.Update(f" Qn: {i}")
     event, values = window.read()
+    now = time.time()
     if event == sg.WIN_CLOSED or event == 'Cancel':  # if user closes window or clicks cancel
         break
     if event in options:
-        now = time.time()
         question.time = int(now - prev)
         question.answer = event
+    if event in nav_options[0]:
+        if ( i != 1 ):
+            i -= 1
+            question = section.get_qn(i)
+    elif event in nav_options[1]:
         i += 1
-        field.Update(f" Qn: {i}")
-        prev = now
+        if section.qexists(i):
+            question = section.get_qn(i)
+        else:
+            question = section.add_question(i)
+
+    prev = now
 
 window.close()
 section.finalize()
