@@ -2,6 +2,9 @@
 
 Just a little window thingy with buttons to record your answers as you practice GRE sets.
 
+Demo
+![demo](./demo.gif "demo")
+
 Dependencies:
 - python and PySimpleGUI library 
 To install the library on linux, use pip:
