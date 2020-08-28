@@ -98,7 +98,11 @@ class Section(object):
         time_field = sg.Input(key='time_threshold', font=font, size=(5, 10))
         layout = [
             [prompt],
-            [sg.Input(key='answers', font=font, enable_events=True, size=(5, 50))],
+            [
+                sg.Input(key='answers',
+                         font=font,
+                         enable_events=True)
+            ],
             [sg.Text('Time Threshold: ', font=font)],
             [time_field],
             [sg.Button("Submit", font=font)],
@@ -110,8 +114,9 @@ class Section(object):
             if event in ['Submit', 'Close']:
                 break
             else:
-                prompt.Update(f"Answer keys: ({len(value['answers'])}/{self.furthest})")
-                
+                prompt.Update(
+                    f"Answer keys: ({len(value['answers'])}/{self.furthest})")
+
         window.close()
         self.keys = value['answers'].strip().replace(" ", "").upper()
         ct = value['time_threshold']
@@ -124,7 +129,7 @@ class Section(object):
             printm("Default understood.")
 
     def show_result_gui(self):
-        mline = sg.MLine( font=font_small, size=(40, 20))
+        mline = sg.MLine(key="report", font=font_small, size=(40, 20))
         layout = [
             [sg.Text('Results are in!', justification='center', font=font)],
             [mline],
@@ -137,7 +142,7 @@ class Section(object):
         event, value = window.read()
         if not value['name']: exit()
         with open(f"./{value['name']}", "w+") as f:
-            f.writelines(all_text)
+            f.writelines(value['report'])
         window.close()
 
     def prepare_result(self):
@@ -258,7 +263,6 @@ section = Section()
 window = sg.Window('record', layout, finalize=True)
 
 # Event Loop to process "events" and get the "values" of the inputs
-
 
 question = section.add_question(i)
 while True:
