@@ -208,7 +208,8 @@ while True:
 
 window.close()
 section.finalize()
-name = input("label to save this: ")
-with open(f"/home/bibek/gre/{name}", "w+") as f:
+name = input("filename: ")
+if not name: exit()
+with open(f"./{name}", "w+") as f:
     f.writelines(all_text)
 print("saved.")
