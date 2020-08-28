@@ -11,7 +11,7 @@ prev = time.time()
 font = 'Monospace 20'
 font_small = 'Monospace 10'
 ht = 1
-w = 6
+w = 5
 i = 1
 all_text = ""
 
@@ -76,27 +76,77 @@ class Section(object):
         self.questions = []
         self.critical_time = 102
         self.keys = None
+        self.furthest = 0  # the highest question number with a response
 
     def add_question(self, qn):
+        if self.furthest < qn:
+            self.furthest = qn
         new = Response(qn)
         self.questions.append(new)
         return (new)
 
-    def read_answers(self):
+    def read_answers_cli(self, answer=""):
         # get rid of the last question right away
-        del self.questions[-1]
-        print(f"total responses: {len(self.questions)}")
-        self.keys = input("Answers: ").strip().replace(" ", "").upper()
+        #  del self.questions[-1]
+        if not answer:
+            print(f"total responses: {len(self.questions)}")
+            answer = input("Answers: ")
+        self.keys = answer.strip().replace(" ", "").upper()
+
+    def read_answers_gui(self):
+        prompt = sg.Text(f'Answer keys: (0/{self.furthest})', font=font)
+        time_field = sg.Input(key='time_threshold', font=font, size=(5, 10))
+        layout = [
+            [prompt],
+            [sg.Input(key='answers', font=font, enable_events=True, size=(5, 50))],
+            [sg.Text('Time Threshold: ', font=font)],
+            [time_field],
+            [sg.Button("Submit", font=font)],
+        ]
+        window = sg.Window('record', layout, finalize=True)
+        time_field.Update(self.critical_time)
+        while True:
+            event, value = window.read()
+            if event in ['Submit', 'Close']:
+                break
+            else:
+                prompt.Update(f"Answer keys: ({len(value['answers'])}/{self.furthest})")
+                
+        window.close()
+        self.keys = value['answers'].strip().replace(" ", "").upper()
+        ct = value['time_threshold']
+        if ct:
+            try:
+                self.critical_time = int(ct)
+            except:
+                print("Default understood.")
+        else:
+            printm("Default understood.")
+
+    def show_result_gui(self):
+        mline = sg.MLine( font=font_small, size=(40, 20))
+        layout = [
+            [sg.Text('Results are in!', justification='center', font=font)],
+            [mline],
+            [sg.Text('save: ', font=font)],
+            [sg.Input(key='name', font=font_small)],
+            [sg.Button("Save and Exit", font=font)],
+        ]
+        window = sg.Window('record', layout, finalize=True)
+        mline.print(all_text)
+        event, value = window.read()
+        if not value['name']: exit()
+        with open(f"./{value['name']}", "w+") as f:
+            f.writelines(all_text)
+        window.close()
+
+    def prepare_result(self):
         total_keys = len(self.keys)
         for i, q in enumerate(self.questions):
-            #  if not q.answer: del self.questions[i]
             if q.qn > total_keys:
                 printm("\n!!! Not all answerkeys read")
                 break
             q.key = self.keys[q.qn - 1]
-
-    def prepare_result(self):
-        for q in self.questions:
             if not q.answer: continue
             if q.answer == q.key:
                 q.result = 1
@@ -109,6 +159,10 @@ class Section(object):
         printm("\n" + "=" * length)
         printm(banner)
         printm("-" * length)
+
+    def purge_questions(self):
+        if not self.questions[-1].answer:
+            del self.questions[-1]
 
     def show_response(self):
         self._print_banner(["Qn.", "Ans.", "Time"])
@@ -125,14 +179,14 @@ class Section(object):
                        (q.qn, q.answer, q.key, q.get_duration()))
 
     def report_time(self):
-        ct = input(f"\nTime threshold ({section.critical_time}s): ").strip()
-        if ct:
-            try:
-                self.critical_time = int(ct)
-            except:
-                print("Default understood.")
-        else:
-            printm("Default understood.")
+        #  ct = input(f"\nTime threshold ({section.critical_time}s): ").strip()
+        #  if ct:
+        #      try:
+        #          self.critical_time = int(ct)
+        #      except:
+        #          print("Default understood.")
+        #  else:
+        #      printm("Default understood.")
         critical = []
         for q in self.questions:
             if q.time > self.critical_time:
@@ -150,36 +204,52 @@ class Section(object):
                 printm(f"{q.qn}\t{result}\t\t{q.get_duration()}")
 
     def finalize(self):
-        self.read_answers()
+        self.purge_questions()
+        self.read_answers_gui()
         self.prepare_result()
         self.show_result()
         self.report_time()
+        self.show_result_gui()
 
     def get_qn(self, num):
         for q in self.questions:
             if q.qn == num:
-                return(q)
-        return(None)
-
+                return (q)
+        return (None)
 
     def qexists(self, num):
         for q in self.questions:
             if q.qn == num:
-                return(True)
-        return(False)
+                return (True)
+        return (False)
 
 
-field = sg.Text(f"Q: {i}".center(8), size=(w+1, 2), font=font, justification='center')
+field = sg.Text(f" Q: {i}".center(w),
+                size=(w + 1, 2),
+                font=font,
+                justification='center')
 options = ["A", "B", "C", "D", "E", "F", "G"]
-nav_options = ["Prev", "Next"]
+close = sg.Button("close", size=(w, ht), font=font)
+nav_options = ["<<", ">>"]
+#  flag_checkbox = sg.Checkbox('⚑', font=font_small)
 option_buttons = [
     sg.Button(label, size=(w, ht), font=font) for label in options
 ]
 layout = [
-    [field], [option_buttons[0]], [option_buttons[1]], [option_buttons[2]],
-    [option_buttons[3]], [option_buttons[4]], [option_buttons[5]],
+    [field],
+    #  [flag_checkbox],
+    [
+        sg.Button(label, size=(w - 2, ht), font=font_small)
+        for label in nav_options
+    ],
+    [option_buttons[0]],
+    [option_buttons[1]],
+    [option_buttons[2]],
+    [option_buttons[3]],
+    [option_buttons[4]],
+    [option_buttons[5]],
     [option_buttons[6]],
-    [sg.Button(label, size=(w//2+1, ht), font=font_small) for label in nav_options]
+    [close]
 ]
 
 # create a section object
@@ -189,23 +259,26 @@ window = sg.Window('record', layout, finalize=True)
 
 # Event Loop to process "events" and get the "values" of the inputs
 
+
 question = section.add_question(i)
 while True:
     if question.answer:
-        field.Update(f"Q:{i}[{question.answer}]".center(7))
+        field.Update(f"Q:{i}" + f"\n[{question.answer}]")
     else:
-        field.Update(f"Q:{i} ".center(7))
-    event, values = window.read()
+        field.Update(f"Q:{i}")
+    win, event, values = sg.read_all_windows()
     now = time.time()
-    if event == sg.WIN_CLOSED or event == 'Cancel':  # if user closes window or clicks cancel
+    if event == sg.WIN_CLOSED or event == 'close':  # if user closes window or clicks cancel
+        question.update_time(int(now - prev))
         break
     if event in options:
         question.answer = event
-        continue # so as to not reset the time counter
+        continue  # so as to not reset the time counter
     if event in nav_options[0]:
         question.update_time(int(now - prev))
-        if ( i != 1 ):
+        if (i != 1):
             i -= 1
+            section.purge_questions()
             question = section.get_qn(i)
     elif event in nav_options[1]:
         question.update_time(int(now - prev))
@@ -219,8 +292,8 @@ while True:
 
 window.close()
 section.finalize()
-name = input("filename: ")
-if not name: exit()
-with open(f"./{name}", "w+") as f:
-    f.writelines(all_text)
-print("saved.")
+#  name = input("filename: ")
+#  if not name: exit()
+#  with open(f"./{name}", "w+") as f:
+#      f.writelines(all_text)
+#  print("saved.")
