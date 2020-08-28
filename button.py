@@ -63,6 +63,12 @@ class Response(object):
         time = str(self.time // 60) + ":" + "{:02d}".format(self.time % 60)
         return (time)
 
+    def update_time(self, time):
+        if self.time:
+            self.time += time
+        else:
+            self.time = time
+
 
 class Section(object):
     """collection of Responses"""
@@ -163,7 +169,7 @@ class Section(object):
         return(False)
 
 
-field = sg.Text(f" Qn: {i}", size=(w, 2), font=font, justification='center')
+field = sg.Text(f"Q: {i}".center(8), size=(w+1, 2), font=font, justification='center')
 options = ["A", "B", "C", "D", "E", "F", "G"]
 nav_options = ["Prev", "Next"]
 option_buttons = [
@@ -185,19 +191,24 @@ window = sg.Window('record', layout, finalize=True)
 
 question = section.add_question(i)
 while True:
-    field.Update(f" Qn: {i}")
+    if question.answer:
+        field.Update(f"Q:{i}[{question.answer}]".center(7))
+    else:
+        field.Update(f"Q:{i} ".center(7))
     event, values = window.read()
     now = time.time()
     if event == sg.WIN_CLOSED or event == 'Cancel':  # if user closes window or clicks cancel
         break
     if event in options:
-        question.time = int(now - prev)
         question.answer = event
+        continue # so as to not reset the time counter
     if event in nav_options[0]:
+        question.update_time(int(now - prev))
         if ( i != 1 ):
             i -= 1
             question = section.get_qn(i)
     elif event in nav_options[1]:
+        question.update_time(int(now - prev))
         i += 1
         if section.qexists(i):
             question = section.get_qn(i)
