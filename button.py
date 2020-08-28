@@ -105,7 +105,7 @@ class Section(object):
 
     def _print_banner(self, headers):
         banner = "\t".join(headers)
-        length = len(banner) + 1
+        length = len(banner.replace("\t","")) + 4 * len(headers)
         printm("\n" + "=" * length)
         printm(banner)
         printm("-" * length)
@@ -119,7 +119,7 @@ class Section(object):
         self._print_banner(["Qn.", "Answer", "Time"])
         for q in self.questions:
             if q.result:
-                printm("%s\t%s \t\t%s" % (q.qn, q.answer, q.get_duration()))
+                printm("%s\t%s ✓\t%s" % (q.qn, q.answer, q.get_duration()))
             else:
                 printm("%s\t%s(%s)\t%s" %
                        (q.qn, q.answer, q.key, q.get_duration()))
@@ -146,7 +146,7 @@ class Section(object):
                 q = self.questions[i]
                 #    לּ ﬽✘
                 #  result = ":)" if q.result else ":("
-                result = "" if q.result else "✘"
+                result = "✓" if q.result else "⨯"
                 printm(f"{q.qn}\t{result}\t\t{q.get_duration()}")
 
     def finalize(self):
