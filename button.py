@@ -6,6 +6,7 @@
 import PySimpleGUI as sg
 import subprocess
 import time
+import re
 #  from multiprocessing import Process
 
 sg.theme('DarkGreen2')
@@ -55,6 +56,7 @@ class Response(object):
     def __init__(self, qn):
         self.qn = qn
         self.answer = None
+        self.input = ""
         self.time = None
         self.key = None
         self.result = None
@@ -81,6 +83,7 @@ class Section(object):
         self.leaked_time = 0
         self.total_time = 0
         self.furthest = 0  # the highest question number with a response
+        self._pat = re.compile(r"\(.*?\)")
 
     def add_question(self, qn):
         if self.furthest < qn:
@@ -153,12 +156,29 @@ class Section(object):
         window.close()
 
     def prepare_result(self):
+        # put in place (key)
+        shift = 0
+        match = self._pat.finditer(self.keys)
+        for m in match:
+            index = m.start() - shift
+            self.questions[index].key = m.group(0)[1:-1]
+            shift = m.end() - m.start() - 1
+        self.keys = re.sub(r"\(.*?\)", "_", self.keys)
         total_keys = len(self.keys)
+
+        # put in place (answer)
         for i, q in enumerate(self.questions):
+            if not q.answer:
+                q.answer = q.input
             if q.qn > total_keys:
                 print("\n!!! Not all answerkeys read")
                 break
-            q.key = self.keys[q.qn - 1]
+            if self.keys[q.qn-1] == "_":
+                pass
+            else:
+                q.key = self.keys[q.qn - 1]
+
+            # RESULT
             if not q.answer: continue
             if q.answer == q.key:
                 q.result = 1
@@ -178,8 +198,9 @@ class Section(object):
             printm(row[2].rjust(len(headers[2])), nonewline=1)
 
     def purge_questions(self):
+        #  print(f"purge\n{len(self.questions)}")
         while True:
-            if not self.questions[-1].answer:
+            if not self.questions[-1].answer and not self.questions[-1].input:
                 self.furthest -= 1
                 self.leaked_time += self.questions[-1].time
                 del self.questions[-1]
@@ -248,6 +269,7 @@ field = sg.Text(f" Q: {i}".center(w),
                 size=(w + 1, 2),
                 font=font,
                 justification='center')
+answer_input = sg.Input(key='answer', size=(w+1, ht), justification='c', font=font, enable_events=True)
 options = ["A", "B", "C", "D", "E", "F", "G"]
 close = sg.Button("Done", size=(w, ht), font=font)
 nav_options = ["<<", ">>"]
@@ -255,11 +277,13 @@ nav_options = ["<<", ">>"]
 option_buttons = [
     sg.Button(label, size=(w, ht), font=font) for label in options
 ]
+
 layout = [
     [field],
     #  [flag_checkbox],
+    [answer_input],
     [
-        sg.Button(label, size=(w - 3, ht), font=font_small)
+        sg.Button(label, font=font_small)
         for label in nav_options
     ],
     [option_buttons[0]],
@@ -290,25 +314,33 @@ start_time = prev = time.time()
 question = section.add_question(i)
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
+    answer_input.Update(question.input.upper())
     if question.answer:
         field.Update(f"Q:{i}" + f"\n{question.answer}")
     else:
         field.Update(f"Q:{i}")
     win, event, values = sg.read_all_windows()
+    #  print(event, values)
     if ":" in event:
-        if event[0].upper() in options:
-            event = event[0].upper()
-        elif "Return" in event:
+        #  if event[0].upper() in options:
+        #      event = event[0].upper()
+        if "Return" in event:
             event = ">>"
     now = time.time()
+    if event == "answer":
+        question.answer = None
+        question.input = values['answer'].upper().strip()
+    # Closing window
     if event == sg.WIN_CLOSED or event == 'Done':  # if user closes window or clicks cancel
         question.update_time(now - prev)
         section.purge_questions()
         section.total_time = int(now - start_time)
         break
+    # For buttons
     if event in options:
         question.answer = event
         continue  # so as to not reset the time counter
+    # For navigation
     if event in nav_options[0]:
         question.update_time(now - prev)
         if (i != 1):
