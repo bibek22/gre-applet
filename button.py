@@ -60,7 +60,8 @@ class Response(object):
         self.result = None
 
     def get_duration(self):
-        time = str(self.time // 60) + ":" + "{:02d}".format(self.time % 60)
+        secs = round(self.time)
+        time = str( secs// 60) + ":" + "{:02d}".format(secs % 60)
         return (time)
 
     def update_time(self, time):
@@ -78,6 +79,7 @@ class Section(object):
         self.keys = None
         # Time spent on unanswered questions, which is otherwise unaccounted
         self.leaked_time = 0
+        self.total_time = 0
         self.furthest = 0  # the highest question number with a response
 
     def add_question(self, qn):
@@ -190,6 +192,7 @@ class Section(object):
             printm("%s\t%s\t%s" % (q.qn, q.answer, q.get_duration()))
 
     def show_result(self):
+        printm(f"total time: {sec2time(self.total_time)}")
         header = ["Qn.", "Answer", "Time"]
         rows = []
         for q in self.questions:
@@ -283,7 +286,7 @@ window = sg.Window(
     return_keyboard_events=True)
 
 # preparation for the main loop
-prev = time.time()
+start_time = prev = time.time()
 question = section.add_question(i)
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
@@ -299,19 +302,20 @@ while True:
             event = ">>"
     now = time.time()
     if event == sg.WIN_CLOSED or event == 'Done':  # if user closes window or clicks cancel
-        question.update_time(int(now - prev))
+        question.update_time(now - prev)
         section.purge_questions()
+        section.total_time = int(now - start_time)
         break
     if event in options:
         question.answer = event
         continue  # so as to not reset the time counter
     if event in nav_options[0]:
-        question.update_time(int(now - prev))
+        question.update_time(now - prev)
         if (i != 1):
             i -= 1
             question = section.get_qn(i)
     elif event in nav_options[1]:
-        question.update_time(int(now - prev))
+        question.update_time(now - prev)
         i += 1
         if section.qexists(i):
             question = section.get_qn(i)
