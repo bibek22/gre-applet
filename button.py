@@ -156,6 +156,18 @@ class Section(object):
             else:
                 q.result = 0
 
+    def tabulate(self, rows, headers):
+        delim =  "    "
+        banner = delim.join(headers)
+        length = len(banner)
+        printm("\n" + "=" * length)
+        printm(banner)
+        printm("-" * length)
+        for row in rows:
+            printm(rows[0].center(headers[0]), end=delim)
+            printm(rows[0].ljust(headers[1]), end=delim)
+            printm(rows[0].rjust(headers[2]), end=delim)
+
     def _print_banner(self, headers):
         banner = "\t".join(headers)
         length = len(banner) + 5
@@ -177,32 +189,32 @@ class Section(object):
         for q in self.questions:
             printm("%s\t%s\t%s" % (q.qn, q.answer, q.get_duration()))
 
-    def show_result(self):
-        self._print_banner(["Qn.", "Answer", "Time"])
-        for q in self.questions:
-            answer = q.answer if q.answer else "-"
-            if q.result:
-                printm("%s\t%s ✓\t%s" % (q.qn, q.answer, q.get_duration()))
-            else:
-                printm("%s\t%s(%s)\t%s" %
-                       (q.qn, answer, q.key, q.get_duration()))
+    #  def show_result(self):
+    #      self._print_banner(["Qn.", "Answer", "Time"])
+    #      for q in self.questions:
+    #          answer = q.answer if q.answer else "-"
+    #          if q.result:
+    #              printm("%s\t%s ✓\t%s" % (q.qn, q.answer, q.get_duration()))
+    #          else:
+    #              printm("%s\t%s(%s)\t%s" %
+    #                     (q.qn, answer, q.key, q.get_duration()))
 
-    def report_time(self):
-        critical = []
-        for q in self.questions:
-            if q.time > self.critical_time:
-                critical.append(self.questions.index(q))
-        if not critical:
-            printm("\nCongratutions, All on time!")
-        else:
-            printm("\nFollowing questions took too long:")
-            self._print_banner(["Qn.", "Result", "Time"])
-            for i in critical:
-                q = self.questions[i]
-                #    לּ ﬽✘
-                #  result = ":)" if q.result else ":("
-                result = "" if q.result else "✘"
-                printm(f"{q.qn}\t{result}\t{q.get_duration()}")
+    #  def report_time(self):
+    #      critical = []
+    #      for q in self.questions:
+    #          if q.time > self.critical_time:
+    #              critical.append(self.questions.index(q))
+    #      if not critical:
+    #          printm("\nCongratutions, All on time!")
+    #      else:
+    #          printm("\nFollowing questions took too long:")
+    #          self._print_banner(["Qn.", "Result", "Time"])
+    #          for i in critical:
+    #              q = self.questions[i]
+    #              #    לּ ﬽✘
+    #              #  result = ":)" if q.result else ":("
+    #              result = "" if q.result else "✘"
+    #              printm(f"{q.qn}\t{result}\t{q.get_duration()}")
 
     def finalize(self):
         self.purge_questions()
