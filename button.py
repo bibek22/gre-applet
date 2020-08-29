@@ -76,6 +76,8 @@ class Section(object):
         self.questions = []
         self.critical_time = 102
         self.keys = None
+        # Time spent on unanswered questions, which is otherwise unaccounted
+        self.leaked_time = 0
         self.furthest = 0  # the highest question number with a response
 
     def add_question(self, qn):
@@ -160,14 +162,19 @@ class Section(object):
 
     def _print_banner(self, headers):
         banner = "\t".join(headers)
-        length = len(banner) + 1
+        length = len(banner) + 5
         printm("\n" + "=" * length)
         printm(banner)
         printm("-" * length)
 
     def purge_questions(self):
-        if not self.questions[-1].answer:
-            del self.questions[-1]
+        while True:
+            if not self.questions[-1].answer:
+                self.furthest -= 1
+                self.leaked_time += self.questions[-1].time
+                del self.questions[-1]
+            else:
+                break
 
     def show_response(self):
         self._print_banner(["Qn.", "Ans.", "Time"])
@@ -178,7 +185,7 @@ class Section(object):
         self._print_banner(["Qn.", "Answer", "Time"])
         for q in self.questions:
             if q.result:
-                printm("%s\t%s \t\t%s" % (q.qn, q.answer, q.get_duration()))
+                printm("%s\t%s \t%s" % (q.qn, q.answer, q.get_duration()))
             else:
                 printm("%s\t%s(%s)\t%s" %
                        (q.qn, q.answer, q.key, q.get_duration()))
@@ -197,16 +204,16 @@ class Section(object):
             if q.time > self.critical_time:
                 critical.append(self.questions.index(q))
         if not critical:
-            printm("Congratutions, All on time!")
+            printm("\nCongratutions, All on time!")
         else:
-            printm("Following questions took too long:")
+            printm("\nFollowing questions took too long:")
             self._print_banner(["Qn.", "Result", "Time"])
             for i in critical:
                 q = self.questions[i]
                 #    לּ ﬽✘
                 #  result = ":)" if q.result else ":("
                 result = "" if q.result else "✘"
-                printm(f"{q.qn}\t{result}\t\t{q.get_duration()}")
+                printm(f"{q.qn}\t{result}\t{q.get_duration()}")
 
     def finalize(self):
         self.purge_questions()
@@ -234,7 +241,7 @@ field = sg.Text(f" Q: {i}".center(w),
                 font=font,
                 justification='center')
 options = ["A", "B", "C", "D", "E", "F", "G"]
-close = sg.Button("close", size=(w, ht), font=font)
+close = sg.Button("Done", size=(w, ht), font=font)
 nav_options = ["<<", ">>"]
 #  flag_checkbox = sg.Checkbox('⚑', font=font_small)
 option_buttons = [
@@ -267,13 +274,14 @@ window = sg.Window('record', layout, finalize=True)
 question = section.add_question(i)
 while True:
     if question.answer:
-        field.Update(f"Q:{i}" + f"\n[{question.answer}]")
+        field.Update(f"Q:{i}" + f"\n{question.answer}")
     else:
         field.Update(f"Q:{i}")
     win, event, values = sg.read_all_windows()
     now = time.time()
-    if event == sg.WIN_CLOSED or event == 'close':  # if user closes window or clicks cancel
+    if event == sg.WIN_CLOSED or event == 'Done':  # if user closes window or clicks cancel
         question.update_time(int(now - prev))
+        section.purge_questions()
         break
     if event in options:
         question.answer = event
@@ -282,7 +290,6 @@ while True:
         question.update_time(int(now - prev))
         if (i != 1):
             i -= 1
-            section.purge_questions()
             question = section.get_qn(i)
     elif event in nav_options[1]:
         question.update_time(int(now - prev))
