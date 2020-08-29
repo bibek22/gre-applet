@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+## Author : Bibek Gautam
+## Date	  : Sat Aug 29 2020
+## LICENSE: GPL-3
+
 import PySimpleGUI as sg
 import subprocess
 import time
@@ -9,9 +13,9 @@ record = []
 answers = []
 prev = time.time()
 font = 'Monospace 20'
-font_small = 'Monospace 10'
+font_small = 'Monospace 15'
 ht = 1
-w = 5
+w = 3
 i = 1
 all_text = ""
 
@@ -22,7 +26,6 @@ def sec2time(secs):
 
 
 def timer():
-    # Timer
     field_timer = sg.Text(f"0:00",
                           size=(w, 2),
                           font=font,
@@ -38,11 +41,6 @@ def timer():
         label = sec2time(duration)
         print(label)
         field_timer.Update(label)
-
-
-#  timerp = Process(target=timer)
-#  timerp.start()
-
 
 def printm(text, **kwargs):
     global all_text
@@ -96,15 +94,13 @@ class Section(object):
         self.keys = answer.strip().replace(" ", "").upper()
 
     def read_answers_gui(self):
-        prompt = sg.Text(f'Answer keys: (0/{self.furthest})', font=font)
+        prompt = sg.Text(f'Answer keys: (0/{self.furthest})',
+                         font=font,
+                         size=(50, 1))
         time_field = sg.Input(key='time_threshold', font=font, size=(5, 10))
         layout = [
             [prompt],
-            [
-                sg.Input(key='answers',
-                         font=font,
-                         enable_events=True)
-            ],
+            [sg.Input(key='answers', font=font, enable_events=True)],
             [sg.Text('Time Threshold: ', font=font)],
             [time_field],
             [sg.Button("Submit", font=font)],
@@ -116,8 +112,8 @@ class Section(object):
             if event in ['Submit', 'Close']:
                 break
             else:
-                prompt.Update(
-                    f"Answer keys: ({len(value['answers'])}/{self.furthest})")
+                n = len(value['answers'].replace(" ", "").strip())
+                prompt.Update(f"Answer keys: ({n}/{self.furthest})")
 
         window.close()
         self.keys = value['answers'].strip().replace(" ", "").upper()
@@ -128,7 +124,7 @@ class Section(object):
             except:
                 print("Default understood.")
         else:
-            printm("Default understood.")
+            print("Default understood.")
 
     def show_result_gui(self):
         mline = sg.MLine(key="report", font=font_small, size=(40, 20))
@@ -184,21 +180,14 @@ class Section(object):
     def show_result(self):
         self._print_banner(["Qn.", "Answer", "Time"])
         for q in self.questions:
+            answer = q.answer if q.answer else "-"
             if q.result:
                 printm("%s\t%s ✓\t%s" % (q.qn, q.answer, q.get_duration()))
             else:
                 printm("%s\t%s(%s)\t%s" %
-                       (q.qn, q.answer, q.key, q.get_duration()))
+                       (q.qn, answer, q.key, q.get_duration()))
 
     def report_time(self):
-        #  ct = input(f"\nTime threshold ({section.critical_time}s): ").strip()
-        #  if ct:
-        #      try:
-        #          self.critical_time = int(ct)
-        #      except:
-        #          print("Default understood.")
-        #  else:
-        #      printm("Default understood.")
         critical = []
         for q in self.questions:
             if q.time > self.critical_time:
@@ -251,7 +240,7 @@ layout = [
     [field],
     #  [flag_checkbox],
     [
-        sg.Button(label, size=(w - 2, ht), font=font_small)
+        sg.Button(label, size=(w - 3, ht), font=font_small)
         for label in nav_options
     ],
     [option_buttons[0]],
@@ -269,9 +258,8 @@ section = Section()
 # Create the Window
 window = sg.Window('record', layout, finalize=True)
 
-# Event Loop to process "events" and get the "values" of the inputs
-
 question = section.add_question(i)
+# Event Loop to process "events" and get the "values" of the inputs
 while True:
     if question.answer:
         field.Update(f"Q:{i}" + f"\n{question.answer}")
@@ -303,8 +291,3 @@ while True:
 
 window.close()
 section.finalize()
-#  name = input("filename: ")
-#  if not name: exit()
-#  with open(f"./{name}", "w+") as f:
-#      f.writelines(all_text)
-#  print("saved.")
