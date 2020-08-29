@@ -6,7 +6,7 @@
 import PySimpleGUI as sg
 import subprocess
 import time
-from multiprocessing import Process
+#  from multiprocessing import Process
 
 sg.theme('DarkGreen2')
 record = []
@@ -15,7 +15,7 @@ prev = time.time()
 font = 'Monospace 20'
 font_small = 'Monospace 15'
 ht = 1
-w = 3
+w = 5
 i = 1
 all_text = ""
 
@@ -41,6 +41,7 @@ def timer():
         label = sec2time(duration)
         print(label)
         field_timer.Update(label)
+
 
 def printm(text, **kwargs):
     global all_text
