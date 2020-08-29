@@ -13,12 +13,13 @@ pip install PySimpleGui
 ```
 
 Features:
-- Navigation with prev/next buttons
+- clean, unobstrusive GUI
 - Keeps track of time you spent on each question
 - Reads in correct answers once the test is done and shows result
+- pretty tabulated results
+- allows anotating results
 - logs report on to a file
 
 Missing:
 - can't yet select multiple answers for single question
-- would be nice to not depend on terminal at all
 - haven't tested in Windows

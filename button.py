@@ -9,13 +9,10 @@ import time
 #  from multiprocessing import Process
 
 sg.theme('DarkGreen2')
-record = []
-answers = []
 font = 'Monospace 20'
 font_small = 'Monospace 15'
-ht = 1
+ht = i = 1
 w = 5
-i = 1
 all_text = ""
 
 
@@ -30,8 +27,11 @@ def timer():
                           font=font,
                           justification='center')
     layout_timer = [[field_timer]]
-    window_timer = sg.Window('timer', layout_timer, finalize=True, grab_anywhere=True, no_titlebar=True)
-
+    window_timer = sg.Window('timer',
+                             layout_timer,
+                             finalize=True,
+                             grab_anywhere=True,
+                             no_titlebar=True)
     duration = 0
     while True:
         print(duration)
@@ -42,10 +42,12 @@ def timer():
         field_timer.Update(label)
 
 
-def printm(text, **kwargs):
+def printm(text, nonewline=0):
     global all_text
-    print(text, **kwargs)
-    all_text += "\n" + text
+    if nonewline:
+        all_text += text
+    else:
+        all_text += "\n" + text
 
 
 class Response(object):
@@ -105,7 +107,7 @@ class Section(object):
             [time_field],
             [sg.Button("Submit", font=font)],
         ]
-        window = sg.Window('record', layout, finalize=True)
+        window = sg.Window('GRE', layout, finalize=True)
         time_field.Update(self.critical_time)
         while True:
             event, value = window.read()
@@ -129,13 +131,18 @@ class Section(object):
     def show_result_gui(self):
         mline = sg.MLine(key="report", font=font_small, size=(40, 20))
         layout = [
-            [sg.Text('Results are in!', justification='center', font=font, size=(30,1))],
+            [
+                sg.Text('Results are in!',
+                        justification='center',
+                        font=font,
+                        size=(30, 1))
+            ],
             [mline],
             [sg.Text('save: ', font=font)],
-            [sg.Input(key='name', font=font_small, size=(40,1))],
+            [sg.Input(key='name', font=font_small, size=(40, 1))],
             [sg.Button("Save and Exit", font=font)],
         ]
-        window = sg.Window('record', layout, finalize=True)
+        window = sg.Window('GRE', layout, finalize=True)
         mline.print(all_text)
         event, value = window.read()
         if not value['name']: exit()
@@ -147,7 +154,7 @@ class Section(object):
         total_keys = len(self.keys)
         for i, q in enumerate(self.questions):
             if q.qn > total_keys:
-                printm("\n!!! Not all answerkeys read")
+                print("\n!!! Not all answerkeys read")
                 break
             q.key = self.keys[q.qn - 1]
             if not q.answer: continue
@@ -157,23 +164,16 @@ class Section(object):
                 q.result = 0
 
     def tabulate(self, rows, headers):
-        delim =  "    "
+        delim = "    "
         banner = delim.join(headers)
         length = len(banner)
         printm("\n" + "=" * length)
         printm(banner)
         printm("-" * length)
         for row in rows:
-            printm(rows[0].center(headers[0]), end=delim)
-            printm(rows[0].ljust(headers[1]), end=delim)
-            printm(rows[0].rjust(headers[2]), end=delim)
-
-    def _print_banner(self, headers):
-        banner = "\t".join(headers)
-        length = len(banner) + 5
-        printm("\n" + "=" * length)
-        printm(banner)
-        printm("-" * length)
+            printm(row[0].center(len(headers[0])) + delim, nonewline=0)
+            printm(row[1].ljust(len(headers[1])) + delim, nonewline=1)
+            printm(row[2].rjust(len(headers[2])), nonewline=1)
 
     def purge_questions(self):
         while True:
@@ -189,32 +189,36 @@ class Section(object):
         for q in self.questions:
             printm("%s\t%s\t%s" % (q.qn, q.answer, q.get_duration()))
 
-    #  def show_result(self):
-    #      self._print_banner(["Qn.", "Answer", "Time"])
-    #      for q in self.questions:
-    #          answer = q.answer if q.answer else "-"
-    #          if q.result:
-    #              printm("%s\t%s ✓\t%s" % (q.qn, q.answer, q.get_duration()))
-    #          else:
-    #              printm("%s\t%s(%s)\t%s" %
-    #                     (q.qn, answer, q.key, q.get_duration()))
+    def show_result(self):
+        header = ["Qn.", "Answer", "Time"]
+        rows = []
+        for q in self.questions:
+            answer = q.answer if q.answer else "-"
+            if q.result:
+                rows.append([str(q.qn), q.answer + " ", q.get_duration()])
+            else:
+                rows.append(
+                    [str(q.qn), answer + "(" + q.key + ")",
+                     q.get_duration()])
+        self.tabulate(rows, header)
 
-    #  def report_time(self):
-    #      critical = []
-    #      for q in self.questions:
-    #          if q.time > self.critical_time:
-    #              critical.append(self.questions.index(q))
-    #      if not critical:
-    #          printm("\nCongratutions, All on time!")
-    #      else:
-    #          printm("\nFollowing questions took too long:")
-    #          self._print_banner(["Qn.", "Result", "Time"])
-    #          for i in critical:
-    #              q = self.questions[i]
-    #              #    לּ ﬽✘
-    #              #  result = ":)" if q.result else ":("
-    #              result = "" if q.result else "✘"
-    #              printm(f"{q.qn}\t{result}\t{q.get_duration()}")
+    def report_time(self):
+        critical = []
+        for q in self.questions:
+            if q.time > self.critical_time:
+                critical.append(self.questions.index(q))
+        if not critical:
+            printm("\nCongratutions, All on time!")
+        else:
+            header = ["Qn.", "Result", "Time"]
+            rows = []
+            printm("\nFollowing questions took too long:\n")
+            for i in critical:
+                q = self.questions[i]
+                #    לּ ﬽✘
+                result = "" if q.result else "✘"
+                rows.append([str(q.qn), result, q.get_duration()])
+            self.tabulate(rows, header)
 
     def finalize(self):
         self.purge_questions()
@@ -268,14 +272,15 @@ layout = [
 # create a section object
 section = Section()
 # Create the Window
-window = sg.Window('record',
-                   layout,
-                   finalize=True,
-                   location=(1366 - 50, 760 // 2 - 120),
-                   #  no_titlebar=True,
-                   alpha_channel=0.95,
-                   #  grab_anywhere=True,
-                   return_keyboard_events=True)
+window = sg.Window(
+    'GRE',
+    layout,
+    finalize=True,
+    location=(1366 - 50, 760 // 2 - 120),
+    #  no_titlebar=True,
+    alpha_channel=0.95,
+    #  grab_anywhere=True,
+    return_keyboard_events=True)
 
 # preparation for the main loop
 prev = time.time()
@@ -287,7 +292,6 @@ while True:
     else:
         field.Update(f"Q:{i}")
     win, event, values = sg.read_all_windows()
-    print(event, values)
     if ":" in event:
         if event[0].upper() in options:
             event = event[0].upper()
