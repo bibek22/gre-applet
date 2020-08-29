@@ -11,7 +11,6 @@ import time
 sg.theme('DarkGreen2')
 record = []
 answers = []
-prev = time.time()
 font = 'Monospace 20'
 font_small = 'Monospace 15'
 ht = 1
@@ -31,7 +30,7 @@ def timer():
                           font=font,
                           justification='center')
     layout_timer = [[field_timer]]
-    window_timer = sg.Window('timer', layout_timer, finalize=True)
+    window_timer = sg.Window('timer', layout_timer, finalize=True, grab_anywhere=True, no_titlebar=True)
 
     duration = 0
     while True:
@@ -130,10 +129,10 @@ class Section(object):
     def show_result_gui(self):
         mline = sg.MLine(key="report", font=font_small, size=(40, 20))
         layout = [
-            [sg.Text('Results are in!', justification='center', font=font)],
+            [sg.Text('Results are in!', justification='center', font=font, size=(30,1))],
             [mline],
             [sg.Text('save: ', font=font)],
-            [sg.Input(key='name', font=font_small)],
+            [sg.Input(key='name', font=font_small, size=(40,1))],
             [sg.Button("Save and Exit", font=font)],
         ]
         window = sg.Window('record', layout, finalize=True)
@@ -257,8 +256,17 @@ layout = [
 # create a section object
 section = Section()
 # Create the Window
-window = sg.Window('record', layout, finalize=True)
+window = sg.Window('record',
+                   layout,
+                   finalize=True,
+                   location=(1366 - 50, 760 // 2 - 120),
+                   #  no_titlebar=True,
+                   alpha_channel=0.95,
+                   #  grab_anywhere=True,
+                   return_keyboard_events=True)
 
+# preparation for the main loop
+prev = time.time()
 question = section.add_question(i)
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
@@ -267,6 +275,12 @@ while True:
     else:
         field.Update(f"Q:{i}")
     win, event, values = sg.read_all_windows()
+    print(event, values)
+    if ":" in event:
+        if event[0].upper() in options:
+            event = event[0].upper()
+        elif "Return" in event:
+            event = ">>"
     now = time.time()
     if event == sg.WIN_CLOSED or event == 'Done':  # if user closes window or clicks cancel
         question.update_time(int(now - prev))
@@ -287,7 +301,6 @@ while True:
             question = section.get_qn(i)
         else:
             question = section.add_question(i)
-
     prev = now
 
 window.close()
