@@ -63,7 +63,7 @@ class Response(object):
 
     def get_duration(self):
         secs = round(self.time)
-        time = str( secs// 60) + ":" + "{:02d}".format(secs % 60)
+        time = str(secs // 60) + ":" + "{:02d}".format(secs % 60)
         return (time)
 
     def update_time(self, time):
@@ -105,9 +105,10 @@ class Section(object):
                          font=font,
                          size=(50, 1))
         time_field = sg.Input(key='time_threshold', font=font, size=(5, 10))
+        answers_field = sg.Input(key='answers', font=font, enable_events=True)
         layout = [
             [prompt],
-            [sg.Input(key='answers', font=font, enable_events=True)],
+            [answers_field],
             [sg.Text('Time Threshold: ', font=font)],
             [time_field],
             [sg.Button("Submit", font=font)],
@@ -119,7 +120,10 @@ class Section(object):
             if event in ['Submit', 'Close']:
                 break
             else:
-                n = len(value['answers'].replace(" ", "").strip())
+                answers_field.Update(value['answers'].upper())
+                keys = re.sub(r"\(.*?\)", "_",
+                              value['answers'].replace(" ", "").strip())
+                n = len(keys)
                 prompt.Update(f"Answer keys: ({n}/{self.furthest})")
 
         window.close()
@@ -162,7 +166,7 @@ class Section(object):
         for m in match:
             index = m.start() - shift
             self.questions[index].key = m.group(0)[1:-1]
-            shift = m.end() - m.start() - 1
+            shift += m.end() - m.start() - 1
         self.keys = re.sub(r"\(.*?\)", "_", self.keys)
         total_keys = len(self.keys)
 
@@ -173,7 +177,7 @@ class Section(object):
             if q.qn > total_keys:
                 print("\n!!! Not all answerkeys read")
                 break
-            if self.keys[q.qn-1] == "_":
+            if self.keys[q.qn - 1] == "_":
                 pass
             else:
                 q.key = self.keys[q.qn - 1]
@@ -200,7 +204,8 @@ class Section(object):
     def purge_questions(self):
         #  print(f"purge\n{len(self.questions)}")
         while True:
-            if not self.questions[-1].answer and not self.questions[-1].input:
+            if (not self.questions[-1].answer) and (
+                    not self.questions[-1].input):
                 self.furthest -= 1
                 self.leaked_time += self.questions[-1].time
                 del self.questions[-1]
@@ -214,7 +219,7 @@ class Section(object):
 
     def show_result(self):
         printm(f"total time: {sec2time(self.total_time)}")
-        header = ["Qn.", "Answer", "Time"]
+        header = ["Qn.", "Answer(Correct)", "Time"]
         rows = []
         for q in self.questions:
             answer = q.answer if q.answer else "-"
@@ -269,7 +274,11 @@ field = sg.Text(f" Q: {i}".center(w),
                 size=(w + 1, 2),
                 font=font,
                 justification='center')
-answer_input = sg.Input(key='answer', size=(w+1, ht), justification='c', font=font, enable_events=True)
+answer_input = sg.Input(key='answer',
+                        size=(w + 1, ht),
+                        justification='c',
+                        font=font,
+                        enable_events=True)
 options = ["A", "B", "C", "D", "E", "F", "G"]
 close = sg.Button("Done", size=(w, ht), font=font)
 nav_options = ["<<", ">>"]
@@ -282,10 +291,7 @@ layout = [
     [field],
     #  [flag_checkbox],
     [answer_input],
-    [
-        sg.Button(label, font=font_small)
-        for label in nav_options
-    ],
+    [sg.Button(label, font=font_small) for label in nav_options],
     [option_buttons[0]],
     [option_buttons[1]],
     [option_buttons[2]],
@@ -314,9 +320,11 @@ start_time = prev = time.time()
 question = section.add_question(i)
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
-    answer_input.Update(question.input.upper())
+    # don't update answer_input anywhere below
+    # update question.input instead
+    answer_input.Update(question.input)
     if question.answer:
-        field.Update(f"Q:{i}" + f"\n{question.answer}")
+        field.Update(f"Q:{i}")
     else:
         field.Update(f"Q:{i}")
     win, event, values = sg.read_all_windows()
@@ -338,7 +346,9 @@ while True:
         break
     # For buttons
     if event in options:
+        print(event)
         question.answer = event
+        question.input = event
         continue  # so as to not reset the time counter
     # For navigation
     if event in nav_options[0]:
