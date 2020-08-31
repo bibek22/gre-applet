@@ -51,7 +51,7 @@ def printm(text, nonewline=0):
         all_text += "\n" + text
 
 
-class Response(object):
+class Question(object):
     """response object ie. answer from test taker"""
     def __init__(self, qn):
         self.qn = qn
@@ -88,7 +88,7 @@ class Section(object):
     def add_question(self, qn):
         if self.furthest < qn:
             self.furthest = qn
-        new = Response(qn)
+        new = Question(qn)
         self.questions.append(new)
         return (new)
 
@@ -328,12 +328,8 @@ while True:
     else:
         field.Update(f"Q:{i}")
     win, event, values = sg.read_all_windows()
-    #  print(event, values)
-    if ":" in event:
-        #  if event[0].upper() in options:
-        #      event = event[0].upper()
-        if "Return" in event:
-            event = ">>"
+    if "Return" in event:
+        event = ">>"
     now = time.time()
     if event == "answer":
         question.answer = None
@@ -346,7 +342,6 @@ while True:
         break
     # For buttons
     if event in options:
-        print(event)
         question.answer = event
         question.input = event
         continue  # so as to not reset the time counter
@@ -356,6 +351,7 @@ while True:
         if (i != 1):
             i -= 1
             question = section.get_qn(i)
+        prev = now
     elif event in nav_options[1]:
         question.update_time(now - prev)
         i += 1
@@ -363,7 +359,7 @@ while True:
             question = section.get_qn(i)
         else:
             question = section.add_question(i)
-    prev = now
+        prev = now
 
 window.close()
 section.finalize()
