@@ -9,8 +9,13 @@ import re
 #  from multiprocessing import Process
 
 sg.theme('DarkGreen2')
-font = 'Monospace 20'
-font_small = 'Monospace 15'
+if sys.platform == 'darwin':
+    font = 'Courier 20'
+    font_small = 'Courier 15' 
+else:
+    font = 'Mono 20'
+    font_small = 'Mono 15'
+
 ht = i = 1
 w = 5
 all_text = ""
@@ -267,7 +272,7 @@ class Section(object):
         for q in self.questions:
             answer = q.answer if q.answer else "-"
             if q.result:
-                rows.append([str(q.qn), " " + q.answer , q.get_duration()])
+                rows.append([str(q.qn), "✓ " + q.answer , q.get_duration()])
             else:
                 rows.append(
                     [str(q.qn), "✘ " + answer + "(" + q.key + ")",
@@ -288,7 +293,7 @@ class Section(object):
             for i in critical:
                 q = self.questions[i]
                 #    לּ ﬽✘
-                result = "" if q.result else "✘"
+                result = "✓" if q.result else "✘"
                 rows.append([str(q.qn), result, q.get_duration()])
             self.tabulate(rows, header)
 
