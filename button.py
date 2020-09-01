@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 ## Author : Bibek Gautam
 ## Date	  : Sat Aug 29 2020
-## LICENSE: GPL-3
 
 import PySimpleGUI as sg
 import subprocess
@@ -44,6 +43,8 @@ def timer():
 
 
 def printm(text, nonewline=0):
+    # used to be a wrapper around print. But it just saves
+    # texts on a variable now.
     global all_text
     if nonewline:
         all_text += text
@@ -52,7 +53,25 @@ def printm(text, nonewline=0):
 
 
 class Question(object):
-    """response object ie. answer from test taker"""
+    """
+    response object ie. answer from test taker
+
+    Attributes:
+    qn : int
+        Question number
+    answer: str
+        Answer choosen from 7 options(buttons)
+    input: str
+        Any input given in the input field.
+        answer and input overwrite each other.
+    time: float
+        Time spent on this question
+    key: str
+        correct answer for this question from the answer key
+        read from the user.
+    result: bool
+        whether user got this question right.
+    """
     def __init__(self, qn):
         self.qn = qn
         self.answer = None
@@ -74,7 +93,31 @@ class Question(object):
 
 
 class Section(object):
-    """collection of Responses"""
+    """
+    collection of Responses
+
+    Attributes
+    questions: list
+        of Question objects
+    critical_time: int
+        Target time to spend on each question
+        spend beyond this and will be reported in the result screen.
+        can be changed at the end.
+    keys: str
+        entirety of answer keys for all questions
+        read from user
+    leaked_time: float
+        this just keeps track of time not accounted for in any questions
+        not sure if this is necessary anymore.
+    total_time: float
+        total time spent on this session
+        It's printed on the result screen
+    furthest: int
+        The furthest one went into the section.
+        the greatest `qn` of the question attempted
+    _pat : regex compiled object
+        pattern to look for as a single answer. 
+    """
     def __init__(self):
         self.questions = []
         self.critical_time = 102
@@ -224,10 +267,10 @@ class Section(object):
         for q in self.questions:
             answer = q.answer if q.answer else "-"
             if q.result:
-                rows.append([str(q.qn), q.answer + " ", q.get_duration()])
+                rows.append([str(q.qn), " " + q.answer , q.get_duration()])
             else:
                 rows.append(
-                    [str(q.qn), answer + "(" + q.key + ")",
+                    [str(q.qn), "✘ " + answer + "(" + q.key + ")",
                      q.get_duration()])
         self.tabulate(rows, header)
 
