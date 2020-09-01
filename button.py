@@ -267,7 +267,7 @@ class Section(object):
             printm("%s\t%s\t%s" % (q.qn, q.answer, q.get_duration()))
 
     def show_result(self):
-        printm(f"total time: {sec2time(self.total_time)}")
+        printm(f"Total time: {sec2time(self.total_time)}")
         header = ["Qn.", "Answer(Correct)", "Time"]
         rows = []
         for q in self.questions:
