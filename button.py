@@ -6,6 +6,7 @@ import PySimpleGUI as sg
 import subprocess
 import time
 import re
+import sys
 #  from multiprocessing import Process
 
 sg.theme('DarkGreen2')
