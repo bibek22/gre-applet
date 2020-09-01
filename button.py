@@ -182,9 +182,9 @@ class Section(object):
             try:
                 self.critical_time = int(ct)
             except:
-                print("Default understood.")
+                print("Proceeding with default time threshold.")
         else:
-            print("Default understood.")
+            print("Proceeding with default time threshold.")
 
     def show_result_gui(self):
         mline = sg.MLine(key="report", font=font_small, size=(40, 20))
@@ -267,7 +267,7 @@ class Section(object):
             printm("%s\t%s\t%s" % (q.qn, q.answer, q.get_duration()))
 
     def show_result(self):
-        printm(f"total time: {sec2time(self.total_time)}")
+        printm(f"Total time: {sec2time(self.total_time)}")
         header = ["Qn.", "Answer(Correct)", "Time"]
         rows = []
         for q in self.questions:
@@ -290,7 +290,7 @@ class Section(object):
         else:
             header = ["Qn.", "Result", "Time"]
             rows = []
-            printm("\nFollowing questions took too long:\n")
+            printm("\nFollowing questions took too long:")
             for i in critical:
                 q = self.questions[i]
                 #    לּ ﬽✘
@@ -299,12 +299,25 @@ class Section(object):
             self.tabulate(rows, header)
 
     def finalize(self):
-        self.purge_questions()
-        self.read_answers_gui()
-        self.prepare_result()
-        self.show_result()
-        self.report_time()
-        self.show_result_gui()
+        try:
+            self.purge_questions()
+            self.read_answers_gui()
+            self.prepare_result()
+            self.show_result()
+            self.report_time()
+            self.show_result_gui()
+        except Exception as e:
+            print(e)
+            user_response = []
+            for q in self.questions:
+                answer = q.answer if q.answer else q.input
+                user_response.append(answer)
+            logfile = f"./gre-applet-autosave-{time.time()}"
+            with open(logfile, "w+") as file:
+                file.write("Answers: " + ",".join(user_response))
+                if self.keys: file.write("\nKeys: " + self.keys)
+            print(f"Error Occurred.\nLog saved at {logfile}")
+            exit()
 
     def get_qn(self, num):
         for q in self.questions:
