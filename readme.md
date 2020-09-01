@@ -1,25 +1,26 @@
 ## GRE applet
 
-Just a little window thingy with buttons to record your answers as you practice GRE sets.
+GRE practice test companion. Keep track of your progress and where you spend time the most.
 
 Demo
 ![demo](./demo.gif "demo")
 
 Dependencies:
 - python and PySimpleGUI library 
-To install the library on linux, use pip:
+To install the library on Mac or Linux, use pip:
 ```
-pip install PySimpleGui
+sudo pip install PySimpleGui
 ```
+You may or may not require `sudo`.
 
 Features:
 - clean, unobstrusive GUI
 - Keeps track of time you spent on each question
 - Reads in correct answers once the test is done and shows result
-- pretty tabulated results
+- tabulated results
 - allows anotating results
 - logs report on to a file
+- can answer with multiple answer choices (use input field)
 
 Missing:
-- can't yet select multiple answers for single question
 - haven't tested in Windows
