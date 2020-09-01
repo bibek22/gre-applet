@@ -377,6 +377,7 @@ while True:
     else:
         field.Update(f"Q:{i}")
     win, event, values = sg.read_all_windows()
+    print(event, valus)
     if "Return" in event:
         event = ">>"
     now = time.time()
