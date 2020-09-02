@@ -44,8 +44,9 @@ Missing:
 
 FAQ:
 - How do I pick more than one options for a question?
-Buttons only allow picking one option at a time. But, you can use the input field. Just type `ABC` on it if you want to choose `A`, `B` and `C` options.
-Make sure you put a parenthesis around `ABC` while giving the answer at the end so that it counts as one response.
-like so: `(ABC)`
+    Buttons only allow picking one option at a time. But, you can use the input field.
+    Just type `ABC` on it if you want to choose `A`, `B` and `C` options.
+    Make sure you put a parenthesis around `ABC` while giving the answer at the end so that it counts as one response.
+    Like so: `(ABC)`
 
-Also notice that the counter helps you keep track of how many answer keys you've entered and the counter increases by 1 once you close the parenthesis.
+    Also notice that there's a counter that helps you keep track of how many answer keys you've entered. The counter counts the entire parenthesis block as 1.
