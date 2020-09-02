@@ -10,21 +10,21 @@ Demo
 - PySimpleGUI library 
 
 ### Installation (Mac/Linux)
-- first, install the gui library
+1. first, install the gui library
 ```
 sudo pip install PySimpleGui
 ```
 You may or may not require `sudo`.
-- clone the repo
-```
+1. clone the repo
+```bash
 git clone https://github.com/bibek22/gre-applet.git
 ```
-- `cd` into the directory
-```
+1. `cd` into the directory
+```bash
 cd gre-applet
 ```
-- run the app
-```
+1. run the app
+```bash
 ./button.py
 ```
 
