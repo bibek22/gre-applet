@@ -7,7 +7,6 @@ import subprocess
 import time
 import re
 import sys
-#  from multiprocessing import Process
 
 sg.theme('DarkGreen2')
 if sys.platform == 'darwin':
@@ -25,27 +24,6 @@ all_text = ""
 def sec2time(secs):
     time = str(secs // 60) + ":" + "{:02d}".format(secs % 60)
     return (time)
-
-
-def timer():
-    field_timer = sg.Text(f"0:00",
-                          size=(w, 2),
-                          font=font,
-                          justification='center')
-    layout_timer = [[field_timer]]
-    window_timer = sg.Window('timer',
-                             layout_timer,
-                             finalize=True,
-                             grab_anywhere=True,
-                             no_titlebar=True)
-    duration = 0
-    while True:
-        print(duration)
-        time.sleep(1)
-        duration += 1
-        label = sec2time(duration)
-        print(label)
-        field_timer.Update(label)
 
 
 def printm(text, nonewline=0):
@@ -133,6 +111,7 @@ class Section(object):
         self.total_time = 0
         self.furthest = 0  # the highest question number with a response
         self._pat = re.compile(r"\(.*?\)")
+        self.raw_score = 0
 
     def add_question(self, qn):
         if self.furthest < qn:
@@ -140,14 +119,6 @@ class Section(object):
         new = Question(qn)
         self.questions.append(new)
         return (new)
-
-    def read_answers_cli(self, answer=""):
-        # get rid of the last question right away
-        #  del self.questions[-1]
-        if not answer:
-            print(f"total responses: {len(self.questions)}")
-            answer = input("Answers: ")
-        self.keys = answer.strip().replace(" ", "").upper()
 
     def read_answers_gui(self):
         prompt = sg.Text(f'Answer keys: (0/{self.furthest})',
@@ -174,8 +145,8 @@ class Section(object):
                               value['answers'].replace(" ", "").strip())
                 n = len(keys)
                 prompt.Update(f"Answer keys: ({n}/{self.furthest})")
-
         window.close()
+
         self.keys = value['answers'].strip().replace(" ", "").upper()
         ct = value['time_threshold']
         if ct:
@@ -235,6 +206,7 @@ class Section(object):
             if not q.answer: continue
             if q.answer == q.key:
                 q.result = 1
+                self.raw_score += 1
             else:
                 q.result = 0
 
@@ -268,6 +240,7 @@ class Section(object):
 
     def show_result(self):
         printm(f"Total time: {sec2time(self.total_time)}")
+        printm(f"Raw Score: {self.raw_score}/{self.furthest}")
         header = ["Qn.", "Answer(Correct)", "Time"]
         rows = []
         for q in self.questions:
@@ -286,7 +259,7 @@ class Section(object):
             if q.time > self.critical_time:
                 critical.append(self.questions.index(q))
         if not critical:
-            printm("\nCongratutions, All on time!")
+            printm("\nCongratutions on the time!")
         else:
             header = ["Qn.", "Result", "Time"]
             rows = []

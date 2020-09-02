@@ -48,7 +48,7 @@ FAQ:
 
   Answer key is read on the second window which pops up once you click `Done` on the first widget.
 
-  You can put spaces however you like. Those are ignored. Each new non space character is counted as a answer key. 
+  You can put spaces however you like. Those are ignored. Each new non space character is counted as an answer key. 
 
   `ABC` `A B C` `AB C` are all equivalent and mean questions 1-3 have the correct answers `A`, `B` and `C` respectively.
 
@@ -65,3 +65,9 @@ FAQ:
     Same thing as above. Just type in the answers and put parenthesis around the correct answer on the second screen.
 
     `A(1/2)B` implies the correct answer for the second question is `1/2`.
+
+
+
+Acknowledgement:
+
+Thanks to *Karan Singh* and *darklord_king* on discord for testing it on Mac.
