@@ -43,10 +43,25 @@ Missing:
 - feature to flag questions
 
 FAQ:
+
+- How is the answer key read?
+
+  Answer key is read on the second window which pops up once you click `Done` on the first widget.
+
+  You can put spaces however you like. Those are ignored. Each new non space character is counted as a answer key. 
+
+  `ABC` `A B C` `AB C` are all equivalent and mean questions 1-3 have the correct answers `A`, `B` and `C` respectively.
+
 - How do I pick more than one options for a question?
-    Buttons only allow picking one option at a time. But, you can use the input field.
-    Just type `ABC` on it if you want to choose `A`, `B` and `C` options.
-    Make sure you put a parenthesis around `ABC` while giving the answer at the end so that it counts as one response.
+
+    Just type `ABC` with keyboard on the input field if you want to choose `A`, `B` and `C` options.
+    Make sure you put a parenthesis around `ABC` when you provide the answer key on second window so that it counts as one response.
     Like so: `(ABC)`
 
     Also notice that there's a counter that helps you keep track of how many answer keys you've entered. The counter counts the entire parenthesis block as 1.
+
+- How about numerical input?
+
+    Same thing as above. Just type in the answers and put parenthesis around the correct answer on the second screen.
+
+    `A(1/2)B` implies the correct answer for the second question is `1/2`.
