@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ## Author : Bibek Gautam
 ## Date	  : Sat Aug 29 2020
 
@@ -121,7 +121,7 @@ class Section(object):
         return (new)
 
     def read_answers_gui(self):
-        prompt = sg.Text(f'Answer keys: (0/{self.furthest})',
+        prompt = sg.Text(f"Answer keys: (0/{self.furthest})",
                          font=font,
                          size=(50, 1))
         time_field = sg.Input(key='time_threshold', font=font, size=(5, 10))
