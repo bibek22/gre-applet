@@ -13,8 +13,8 @@ if sys.platform == 'darwin':
     font = 'Courier 20'
     font_small = 'Courier 15' 
 else:
-    font = 'Mono 20'
-    font_small = 'Mono 15'
+    font = 'Monospace 20'
+    font_small = 'Monospace 15'
 
 ht = i = 1
 w = 5
@@ -137,18 +137,18 @@ class Section(object):
         time_field.Update(self.critical_time)
         while True:
             event, value = window.read()
-            if event in ['Submit', 'Close']:
+            if event == sg.WIN_CLOSED or event == 'Submit':
                 break
             else:
                 answers_field.Update(value['answers'].upper())
-                keys = re.sub(r"\(.*?\)", "_",
-                              value['answers'].replace(" ", "").strip())
+                # Inefficient but gets the job done
+                self.keys = value['answers'].strip().replace(" ", "").upper()
+                ct = value['time_threshold']
+                keys = re.sub(r"\(.*?\)", "_", self.keys)
                 n = len(keys)
                 prompt.Update(f"Answer keys: ({n}/{self.furthest})")
         window.close()
 
-        self.keys = value['answers'].strip().replace(" ", "").upper()
-        ct = value['time_threshold']
         if ct:
             try:
                 self.critical_time = int(ct)
@@ -240,7 +240,7 @@ class Section(object):
 
     def show_result(self):
         printm(f"Total time: {sec2time(self.total_time)}")
-        printm(f"Raw Score: {self.raw_score}/{self.furthest}")
+        printm(f"Raw score: {self.raw_score}/{self.furthest}")
         header = ["Qn.", "Answer(Correct)", "Time"]
         rows = []
         for q in self.questions:
@@ -363,18 +363,18 @@ while True:
     else:
         field.Update(f"Q:{i}")
     win, event, values = sg.read_all_windows()
-    if "Return" in event:
-        event = ">>"
-    now = time.time()
-    if event == "answer":
-        question.answer = None
-        question.input = values['answer'].upper().strip()
     # Closing window
     if event == sg.WIN_CLOSED or event == 'Done':  # if user closes window or clicks cancel
         question.update_time(now - prev)
         section.purge_questions()
         section.total_time = int(now - start_time)
         break
+    if "Return" in event:
+        event = ">>"
+    now = time.time()
+    if event == "answer":
+        question.answer = None
+        question.input = values['answer'].upper().strip()
     # For buttons
     if event in options:
         question.answer = event
