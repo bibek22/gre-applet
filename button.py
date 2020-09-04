@@ -180,7 +180,7 @@ class Section(object):
             [sg.Input(key='name', font=(font, fs_mid), size=(2*fs_mid, 1))],
             [sg.Button("Save and Exit", font=(font, fs_mid))],
         ]
-        window = sg.Window('GRE', layout, finalize=True)
+        window = sg.Window('GRE', layout, finalize=True, margins=(4,4))
         mline.print(all_text)
         event, value = window.read()
         if not value['name']: exit()
