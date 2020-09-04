@@ -9,13 +9,17 @@ import re
 import sys
 
 sg.theme('DarkGreen2')
+sg.SetOptions(element_padding=(2, 2))
+sg.SetOptions(margins=(0, 4))
 if sys.platform == 'darwin':
-    font = 'Courier 20'
-    font_small = 'Courier 15' 
+    font = "Courier"
 else:
-    font = 'Monospace 20'
-    font_small = 'Monospace 15'
+    font = "Monospace"
 
+fs_big = 20
+fs_mid = 15
+fs_small = 10
+fs_tiny = 10
 ht = i = 1
 w = 5
 all_text = ""
@@ -25,7 +29,6 @@ def sec2time(secs):
     time = str(secs // 60) + ":" + "{:02d}".format(secs % 60)
     return (time)
 
-
 def printm(text, nonewline=0):
     # used to be a wrapper around print. But it just saves
     # texts on a variable now.
@@ -34,6 +37,10 @@ def printm(text, nonewline=0):
         all_text += text
     else:
         all_text += "\n" + text
+
+def timer(time, element):
+    time = sec2time(int(time))
+    element.Update(time)
 
 
 class Question(object):
@@ -55,14 +62,17 @@ class Question(object):
         read from the user.
     result: bool
         whether user got this question right.
+    flag: bool
+        flag the question
     """
     def __init__(self, qn):
         self.qn = qn
         self.answer = None
         self.input = ""
-        self.time = None
+        self.time = 0
         self.key = None
         self.result = None
+        self.flag = 0
 
     def get_duration(self):
         secs = round(self.time)
@@ -104,7 +114,7 @@ class Section(object):
     """
     def __init__(self):
         self.questions = []
-        self.critical_time = 102
+        self.critical_time = 90
         self.keys = None
         # Time spent on unanswered questions, which is otherwise unaccounted
         self.leaked_time = 0
@@ -122,16 +132,16 @@ class Section(object):
 
     def read_answers_gui(self):
         prompt = sg.Text(f"Answer keys: (0/{self.furthest})",
-                         font=font,
+                         font=(font, fs_mid),
                          size=(50, 1))
-        time_field = sg.Input(key='time_threshold', font=font, size=(5, 10))
-        answers_field = sg.Input(key='answers', font=font, enable_events=True)
+        time_field = sg.Input(key='time_threshold', font=(font, fs_mid), size=(5, 10))
+        answers_field = sg.Input(key='answers', font=(font, fs_mid), enable_events=True)
         layout = [
             [prompt],
             [answers_field],
-            [sg.Text('Time Threshold: ', font=font)],
+            [sg.Text('Time Threshold: ', font=(font, fs_mid))],
             [time_field],
-            [sg.Button("Submit", font=font)],
+            [sg.Button("Submit", font=(font, fs_mid))],
         ]
         window = sg.Window('GRE', layout, finalize=True)
         time_field.Update(self.critical_time)
@@ -158,18 +168,18 @@ class Section(object):
             print("Proceeding with default time threshold.")
 
     def show_result_gui(self):
-        mline = sg.MLine(key="report", font=font_small, size=(40, 20))
+        mline = sg.MLine(key="report", font=(font, fs_mid), size=(40, 20))
         layout = [
             [
                 sg.Text('Results are in!',
                         justification='center',
-                        font=font,
+                        font=(font, fs_mid),
                         size=(30, 1))
             ],
             [mline],
-            [sg.Text('save: ', font=font)],
-            [sg.Input(key='name', font=font_small, size=(40, 1))],
-            [sg.Button("Save and Exit", font=font)],
+            [sg.Text('save: ', font=(font, fs_mid))],
+            [sg.Input(key='name', font=(font, fs_mid), size=(40, 1))],
+            [sg.Button("Save and Exit", font=(font, fs_mid))],
         ]
         window = sg.Window('GRE', layout, finalize=True)
         mline.print(all_text)
@@ -266,7 +276,6 @@ class Section(object):
             printm("\nFollowing questions took too long:")
             for i in critical:
                 q = self.questions[i]
-                #    לּ ﬽✘
                 result = "✓" if q.result else "✘"
                 rows.append([str(q.qn), result, q.get_duration()])
             self.tabulate(rows, header)
@@ -285,10 +294,10 @@ class Section(object):
             for q in self.questions:
                 answer = q.answer if q.answer else q.input
                 user_response.append(answer)
-            logfile = f"./gre-applet-autosave-{time.time()}"
+            logfile = f"./gre-applet-autosave-" + str(time.time())[3:9]
             with open(logfile, "w+") as file:
                 file.write("Answers: " + ",".join(user_response))
-                if self.keys: file.write("\nKeys: " + self.keys)
+                if self.keys: file.write("\nKeys: " + self.keys + "\n")
             print(f"Error Occurred.\nLog saved at {logfile}")
             exit()
 
@@ -305,28 +314,35 @@ class Section(object):
         return (False)
 
 
-field = sg.Text(f" Q: {i}".center(w),
-                size=(w + 1, 2),
-                font=font,
+field = sg.Text(f"{i}".center(w),
+                size=(w+1, 1),
+                font=(font, fs_big),
+                justification='center')
+timer_field = sg.Text(f"",
+                size=(w+1, 1),
+                font=(font, fs_tiny),
                 justification='center')
 answer_input = sg.Input(key='answer',
                         size=(w + 1, ht),
                         justification='c',
-                        font=font,
+                        font=(font, fs_mid),
                         enable_events=True)
 options = ["A", "B", "C", "D", "E", "F", "G"]
-close = sg.Button("Done", size=(w, ht), font=font)
+close = sg.Button("Done", size=(w, ht), font=(font, fs_mid))
+timer_check = sg.Checkbox("⏰", default=True, key='timer', font=(font, fs_tiny))
+flag_check = sg.Checkbox("🚩", default=True, key="flag", font=(font, fs_tiny))
 nav_options = ["<<", ">>"]
-#  flag_checkbox = sg.Checkbox('⚑', font=font_small)
 option_buttons = [
-    sg.Button(label, size=(w, ht), font=font) for label in options
+    sg.Button(label, size=(w, ht), font=(font, fs_mid)) for label in options
 ]
 
 layout = [
     [field],
-    #  [flag_checkbox],
+    [sg.Text("_"*20, font=(font, 5))],
+    [timer_field],
+    [timer_check, flag_check],
     [answer_input],
-    [sg.Button(label, font=font_small) for label in nav_options],
+    [sg.Button(label, font=(font, fs_small)) for label in nav_options],
     [option_buttons[0]],
     [option_buttons[1]],
     [option_buttons[2]],
@@ -347,6 +363,7 @@ window = sg.Window(
     location=(1366 - 50, 760 // 2 - 120),
     #  no_titlebar=True,
     alpha_channel=0.95,
+    element_justification='center',
     #  grab_anywhere=True,
     return_keyboard_events=True)
 
@@ -359,16 +376,23 @@ while True:
     # update question.input instead
     answer_input.Update(question.input)
     if question.answer:
-        field.Update(f"Q:{i}")
+        field.Update(f"{i}")
     else:
-        field.Update(f"Q:{i}")
-    win, event, values = sg.read_all_windows()
+        field.Update(f"{i}")
+    event, values = window.Read(timeout=100)
     # Closing window
     if event == sg.WIN_CLOSED or event == 'Done':  # if user closes window or clicks cancel
         question.update_time(now - prev)
         section.purge_questions()
         section.total_time = int(now - start_time)
         break
+    if values['timer']:
+        if values['flag']:
+            timer(question.time + time.time() - prev , timer_field)
+        else:
+            timer(time.time() - start_time , timer_field)
+    else:
+        timer_field.Update("")
     if "Return" in event:
         event = ">>"
     now = time.time()
@@ -382,12 +406,14 @@ while True:
         continue  # so as to not reset the time counter
     # For navigation
     if event in nav_options[0]:
+        question.flag = values['flag']
         question.update_time(now - prev)
         if (i != 1):
             i -= 1
             question = section.get_qn(i)
         prev = now
     elif event in nav_options[1]:
+        question.flag = values['flag']
         question.update_time(now - prev)
         i += 1
         if section.qexists(i):
