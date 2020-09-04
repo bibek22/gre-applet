@@ -10,16 +10,15 @@ import sys
 
 sg.theme('DarkGreen2')
 sg.SetOptions(element_padding=(2, 2))
-sg.SetOptions(margins=(0, 4))
+sg.SetOptions(margins=(2, 4))
 if sys.platform == 'darwin':
     font = "Courier"
 else:
     font = "Monospace"
 
 fs_big = 20
-fs_mid = 15
-fs_small = 10
-fs_tiny = 10
+fs_mid = int(3/4*fs_big)
+fs_small = int(1/2*fs_big)
 ht = i = 1
 w = 5
 all_text = ""
@@ -168,17 +167,17 @@ class Section(object):
             print("Proceeding with default time threshold.")
 
     def show_result_gui(self):
-        mline = sg.MLine(key="report", font=(font, fs_mid), size=(40, 20))
+        mline = sg.MLine(key="report", font=(font, fs_mid), size=(2*fs_mid, 20))
         layout = [
             [
                 sg.Text('Results are in!',
                         justification='center',
                         font=(font, fs_mid),
-                        size=(30, 1))
+                        size=(2*fs_mid, 1))
             ],
             [mline],
             [sg.Text('save: ', font=(font, fs_mid))],
-            [sg.Input(key='name', font=(font, fs_mid), size=(40, 1))],
+            [sg.Input(key='name', font=(font, fs_mid), size=(2*fs_mid, 1))],
             [sg.Button("Save and Exit", font=(font, fs_mid))],
         ]
         window = sg.Window('GRE', layout, finalize=True)
@@ -320,7 +319,7 @@ field = sg.Text(f"{i}".center(w),
                 justification='center')
 timer_field = sg.Text(f"",
                 size=(w+1, 1),
-                font=(font, fs_tiny),
+                font=(font, fs_small),
                 justification='center')
 answer_input = sg.Input(key='answer',
                         size=(w + 1, ht),
@@ -329,8 +328,8 @@ answer_input = sg.Input(key='answer',
                         enable_events=True)
 options = ["A", "B", "C", "D", "E", "F", "G"]
 close = sg.Button("Done", size=(w, ht), font=(font, fs_mid))
-timer_check = sg.Checkbox("⏰", default=True, key='timer', font=(font, fs_tiny))
-flag_check = sg.Checkbox("🚩", default=True, key="flag", font=(font, fs_tiny))
+timer_check = sg.Checkbox("⏰", default=True, key='timer', font=(font, fs_small))
+flag_check = sg.Checkbox("🚩", default=True, key="flag", font=(font, fs_small))
 nav_options = ["<<", ">>"]
 option_buttons = [
     sg.Button(label, size=(w, ht), font=(font, fs_mid)) for label in options
