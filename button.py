@@ -16,9 +16,9 @@ if sys.platform == 'darwin':
 else:
     font = "Monospace"
 
-fs_big = 20
-fs_mid = int(3/4*fs_big)
-fs_small = int(1/2*fs_big)
+fs_big = 15
+fs_mid = fs_big + 1
+fs_small = fs_mid - 5
 ht = i = 1
 w = 5
 all_text = ""
@@ -313,7 +313,7 @@ class Section(object):
         return (False)
 
 
-field = sg.Text(f"{i}".center(w),
+field = sg.Text(f"Q.{i}".center(w),
                 size=(w+1, 1),
                 font=(font, fs_big),
                 justification='center')
@@ -337,7 +337,7 @@ option_buttons = [
 
 layout = [
     [field],
-    [sg.Text("_"*20, font=(font, 5))],
+    [sg.Text("_"*30, font=(font, 2))],
     [timer_field],
     [timer_check, flag_check],
     [answer_input],
@@ -375,9 +375,9 @@ while True:
     # update question.input instead
     answer_input.Update(question.input)
     if question.answer:
-        field.Update(f"{i}")
+        field.Update(f"Q.{i}")
     else:
-        field.Update(f"{i}")
+        field.Update(f"Q.{i}")
     event, values = window.Read(timeout=100)
     # Closing window
     if event == sg.WIN_CLOSED or event == 'Done':  # if user closes window or clicks cancel
